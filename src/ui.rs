@@ -7,6 +7,8 @@ use std::io::{self, Write};
 use std::thread;
 use std::time::Duration;
 
+use crate::machine::Machine;
+
 pub struct TerminalUI {
     stdout: io::Stdout,
 }
@@ -30,16 +32,19 @@ impl TerminalUI {
         Ok(())
     }
 
-    pub fn run_spin_animation(&mut self, machine_count: i32) -> io::Result<()> {
+    pub fn run_spin_animation(&mut self, machines: Vec<Machine>) -> io::Result<()> {
         let lines_per_machine = 5; // Header + 3 rows + Spacer
+        let machine_count = machines.len();
         let total_lines = (machine_count * lines_per_machine) as u16 + 1;
 
+        // note: this is moving into start
         // Step 1: Create the "Stage"
         // We print the lines once to push the prompt up and establish our space.
         for _ in 0..total_lines {
             writeln!(self.stdout)?;
         }
 
+        // note: this is staying here and will be improved
         // Step 2: The Animation Loop
         for frame in 0..20 {
             // Move back to the top of our "Stage"
@@ -47,13 +52,14 @@ impl TerminalUI {
             writeln!(self.stdout)?;
 
             for i in 0..machine_count {
-                self.render_machine_inline(i, frame)?;
+                self.render_machine_inline(i as i32, frame)?;
             }
 
             self.stdout.flush()?;
             thread::sleep(Duration::from_millis(80)); // Slightly faster for smoothness
         }
 
+        // note: this is moving into finish()
         // Step 3: Cleanup (The "Dissolve")
         // Move back up one last time and wipe the stage clean.
         execute!(
@@ -65,6 +71,8 @@ impl TerminalUI {
         Ok(())
     }
 
+    // todo: pass machine here directly so we can properly render it with relevant info
+    // todo: add a little handle that gets pulled on frames x -> y for a static animation
     fn render_machine_inline(&mut self, id: i32, frame: i32) -> io::Result<()> {
         // Header
         execute!(
@@ -113,4 +121,3 @@ impl TerminalUI {
         Ok(())
     }
 }
-
