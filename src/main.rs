@@ -37,7 +37,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Play { bet, lines, count } => {
             println!("Playing with bet={}, lines={}, count={}", bet, lines, count);
             ui.start()?;
+            // any potential setup here before actually spinning
+            // todo let result = so we can track the result and send it to the engine
             ui.run_spin_animation(*count)?;
+            // run state logic here so we can decide what to show
             ui.finish()?;
             println!(" Final Result: You won {} credits!", 5);
         }
