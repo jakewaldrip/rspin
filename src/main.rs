@@ -57,6 +57,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let lines_per_machine = 5; // Header + 3 rows + Spacer
             let total_lines = (count * lines_per_machine) as u16 + 1;
+
+            println!("Machines: {machines:?}");
             ui.start(total_lines)?;
 
             // the sauce is going to primarily be in the animations

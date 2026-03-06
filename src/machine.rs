@@ -1,40 +1,75 @@
+use rand::{Rng, RngExt, seq::SliceRandom};
+
+pub const REEL_STRIPS: [[char; 24]; 5] = [
+    [
+        'o', '#', '$', 'o', '*', '@', 'o', '#', '$', '7', '%', '#', '$', '*', '@', '&', 'o', '#',
+        '$', 'o', '*', '@', '#', '$',
+    ],
+    [
+        '#', 'o', '$', '#', '*', '@', '#', 'o', '$', '&', '#', 'o', '$', '*', '@', '7', '#', 'o',
+        '$', '#', '*', '%', 'o', '$',
+    ],
+    [
+        '$', '#', 'o', '$', '%', '@', '$', '#', 'o', '7', '$', '#', 'o', '*', '@', '&', '$', '#',
+        'o', '$', '*', '@', '#', 'o',
+    ],
+    [
+        'o', '$', '#', 'o', '@', '*', 'o', '$', '#', '&', 'o', '$', '#', '@', '*', '%', 'o', '$',
+        '#', 'o', '@', '*', '7', '$',
+    ],
+    [
+        '#', '$', 'o', '#', '@', '*', '#', '$', '%', '&', '#', '$', 'o', '@', '*', '7', '#', '$',
+        'o', '#', '@', '*', 'o', '$',
+    ],
+];
+
+#[derive(Debug)]
 pub struct Machine {
     pub reels: [Reel; 5],
-    pub _name: String,
+    pub name: String,
 }
 
 impl Machine {
     pub fn create_n_machines(count: i32) -> Vec<Self> {
-        let mut machines: Vec<Machine> = Vec::new();
-        for i in 1..=count {
-            machines.push(Machine::new(i));
-        }
-        machines
+        (1..=count).map(Self::new).collect()
     }
 
-    pub fn new(_machine_num: i32) -> Self {
-        // todo: make a new machine, maybe somehow pass a seed here for semi random machines?
-        // also set the initial pointer location here
-        // good principle here would be to share that out so the animation module
-        // can properly display the correct start of the reel before the spin starts
-        todo!();
+    /// Make a new machine with all the reels set
+    pub fn new(machine_num: i32) -> Self {
+        Self {
+            reels: std::array::from_fn(Reel::new),
+            name: format!("Machine {machine_num}"),
+        }
     }
 
     pub fn spin(&mut self) {
+        let mut rng = rand::rng();
         for reel in &mut self.reels {
-            reel.spin();
+            reel.spin(&mut rng);
         }
     }
 }
 
+#[derive(Debug)]
 pub struct Reel {
     symbols: Vec<char>,
     ptr: usize,
 }
 
 impl Reel {
-    pub fn spin(&mut self) {
-        // todo: spin the individual reel
-        todo!()
+    /// Make a new reel and shuffle it
+    pub fn new(reel_num: usize) -> Self {
+        let mut reel_set = REEL_STRIPS[reel_num].to_vec();
+        reel_set.shuffle(&mut rand::rng());
+
+        Reel {
+            symbols: reel_set,
+            ptr: 0,
+        }
+    }
+
+    /// Spin the individual reel,
+    pub fn spin<R: Rng>(&mut self, rng: &mut R) {
+        self.ptr = rng.random_range(0..self.symbols.len());
     }
 }
