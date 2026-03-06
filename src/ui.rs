@@ -20,34 +20,43 @@ impl TerminalUI {
         }
     }
 
-    pub fn start(&mut self) -> io::Result<()> {
+    pub fn start(&mut self, total_lines: u16) -> io::Result<()> {
         enable_raw_mode()?;
         execute!(self.stdout, cursor::Hide)?;
-        Ok(())
-    }
 
-    pub fn finish(&mut self) -> io::Result<()> {
-        execute!(self.stdout, cursor::Show)?;
-        disable_raw_mode()?;
-        Ok(())
-    }
-
-    pub fn run_spin_animation(&mut self, machines: Vec<Machine>) -> io::Result<()> {
-        let lines_per_machine = 5; // Header + 3 rows + Spacer
-        let machine_count = machines.len();
-        let total_lines = (machine_count * lines_per_machine) as u16 + 1;
-
-        // note: this is moving into start
-        // Step 1: Create the "Stage"
+        // Set the stage
         // We print the lines once to push the prompt up and establish our space.
         for _ in 0..total_lines {
             writeln!(self.stdout)?;
         }
 
-        // note: this is staying here and will be improved
-        // Step 2: The Animation Loop
+        Ok(())
+    }
+
+    pub fn finish(&mut self, total_lines: u16) -> io::Result<()> {
+        execute!(self.stdout, cursor::Show)?;
+        disable_raw_mode()?;
+
+        // Cleanup
+        // Move back up one last time and wipe the stage clean.
+        execute!(
+            self.stdout,
+            cursor::MoveUp(total_lines),
+            Clear(ClearType::FromCursorDown)
+        )?;
+
+        Ok(())
+    }
+
+    pub fn run_spin_animation(
+        &mut self,
+        machines: Vec<Machine>,
+        total_lines: u16,
+    ) -> io::Result<()> {
+        let machine_count = machines.len();
+
         for frame in 0..20 {
-            // Move back to the top of our "Stage"
+            // Move to the top of the stage
             execute!(self.stdout, cursor::MoveUp(total_lines))?;
             writeln!(self.stdout)?;
 
@@ -56,17 +65,8 @@ impl TerminalUI {
             }
 
             self.stdout.flush()?;
-            thread::sleep(Duration::from_millis(80)); // Slightly faster for smoothness
+            thread::sleep(Duration::from_millis(80));
         }
-
-        // note: this is moving into finish()
-        // Step 3: Cleanup (The "Dissolve")
-        // Move back up one last time and wipe the stage clean.
-        execute!(
-            self.stdout,
-            cursor::MoveUp(total_lines),
-            Clear(ClearType::FromCursorDown)
-        )?;
 
         Ok(())
     }

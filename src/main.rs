@@ -31,19 +31,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let mut ui = ui::TerminalUI::new();
 
+    // todo, display this somehow?
+    let mut database = Database::load()?;
+
     match &cli.command {
         Commands::Balance => {
-            println!("Your balance is: 1000"); // Link to state.rs later
+            println!("Your balance is: {}", database.balance);
         }
         Commands::Cheat { amount } => {
             println!("Added {} credits.", amount);
+            database.balance += amount;
+            database.save()?;
         }
         Commands::Play { bet, lines, count } => {
             println!("Playing with bet={}, lines={}, count={}", bet, lines, count);
             let total_bet = bet * lines * count;
-
-            // todo, display this somehow?
-            let mut database = Database::load()?;
             database.balance -= total_bet;
             database.total_spins += count;
 
@@ -53,22 +55,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 machine.spin();
             }
 
-            // todo: move the total lines calculation here and clear out the right amount of space
-            ui.start()?;
+            let lines_per_machine = 5; // Header + 3 rows + Spacer
+            let total_lines = (count * lines_per_machine) as u16 + 1;
+            ui.start(total_lines)?;
 
             // the sauce is going to primarily be in the animations
             // we need to start it one reel at a time, n ms between, and stop them one at a time
             // with m ms between
             //
             // upon that finishes, we should then display
-            ui.run_spin_animation(machines)?;
+            ui.run_spin_animation(machines, total_lines)?;
 
             // todo: add a step here to display winning lines in a loop
             // we can either let that run for Y ms, or even better would be add a
             // press any button to continue to pause here before moving onto .finish()
 
-            // todo: move the cleanup step of run spin animation here, passing total lines
-            ui.finish()?;
+            ui.finish(total_lines)?;
 
             database.save()?;
 
