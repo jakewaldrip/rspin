@@ -1,5 +1,7 @@
 mod database;
 mod machine;
+mod paylines;
+mod symbols;
 mod ui;
 
 use clap::{Parser, Subcommand};
@@ -34,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // todo, display this somehow?
     let mut database = Database::load()?;
 
-    match &cli.command {
+    match cli.command {
         Commands::Balance => {
             println!("Your balance is: {}", database.balance);
         }
@@ -50,15 +52,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             database.total_spins += count;
 
             // simulate machine spins to get results prior to animating them
-            let mut machines = Machine::create_n_machines(*count);
+            let mut machines = Machine::create_n_machines(count);
             for machine in &mut machines {
                 machine.spin();
+                machine.get_all_paylines(lines);
             }
 
             let lines_per_machine = 5; // Header + 3 rows + Spacer
-            let total_lines = (count * lines_per_machine) as u16 + 1;
+            let total_lines = (count * lines_per_machine) + 1;
 
             println!("Machines: {machines:?}");
+
+            // begin animations
             ui.start(total_lines)?;
 
             // the sauce is going to primarily be in the animations

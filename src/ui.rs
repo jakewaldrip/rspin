@@ -20,7 +20,7 @@ impl TerminalUI {
         }
     }
 
-    pub fn start(&mut self, total_lines: u16) -> io::Result<()> {
+    pub fn start(&mut self, total_lines: i32) -> io::Result<()> {
         enable_raw_mode()?;
         execute!(self.stdout, cursor::Hide)?;
 
@@ -33,7 +33,7 @@ impl TerminalUI {
         Ok(())
     }
 
-    pub fn finish(&mut self, total_lines: u16) -> io::Result<()> {
+    pub fn finish(&mut self, total_lines: i32) -> io::Result<()> {
         execute!(self.stdout, cursor::Show)?;
         disable_raw_mode()?;
 
@@ -41,7 +41,7 @@ impl TerminalUI {
         // Move back up one last time and wipe the stage clean.
         execute!(
             self.stdout,
-            cursor::MoveUp(total_lines),
+            cursor::MoveUp(total_lines as u16),
             Clear(ClearType::FromCursorDown)
         )?;
 
@@ -51,13 +51,13 @@ impl TerminalUI {
     pub fn run_spin_animation(
         &mut self,
         machines: Vec<Machine>,
-        total_lines: u16,
+        total_lines: i32,
     ) -> io::Result<()> {
         let machine_count = machines.len();
 
         for frame in 0..20 {
             // Move to the top of the stage
-            execute!(self.stdout, cursor::MoveUp(total_lines))?;
+            execute!(self.stdout, cursor::MoveUp(total_lines as u16))?;
             writeln!(self.stdout)?;
 
             for i in 0..machine_count {

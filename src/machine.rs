@@ -1,35 +1,19 @@
 use rand::{Rng, RngExt, seq::SliceRandom};
 
-pub const REEL_STRIPS: [[char; 24]; 5] = [
-    [
-        'o', '#', '$', 'o', '*', '@', 'o', '#', '$', '7', '%', '#', '$', '*', '@', '&', 'o', '#',
-        '$', 'o', '*', '@', '#', '$',
-    ],
-    [
-        '#', 'o', '$', '#', '*', '@', '#', 'o', '$', '&', '#', 'o', '$', '*', '@', '7', '#', 'o',
-        '$', '#', '*', '%', 'o', '$',
-    ],
-    [
-        '$', '#', 'o', '$', '%', '@', '$', '#', 'o', '7', '$', '#', 'o', '*', '@', '&', '$', '#',
-        'o', '$', '*', '@', '#', 'o',
-    ],
-    [
-        'o', '$', '#', 'o', '@', '*', 'o', '$', '#', '&', 'o', '$', '#', '@', '*', '%', 'o', '$',
-        '#', 'o', '@', '*', '7', '$',
-    ],
-    [
-        '#', '$', 'o', '#', '@', '*', '#', '$', '%', '&', '#', '$', 'o', '@', '*', '7', '#', '$',
-        'o', '#', '@', '*', 'o', '$',
-    ],
-];
+use crate::{
+    paylines::Paylines,
+    symbols::{REEL_STRIPS, Symbols},
+};
 
 #[derive(Debug)]
 pub struct Machine {
     pub reels: [Reel; 5],
-    pub name: String,
+    pub _name: String,
+    pub _paylines: Vec<Paylines>,
 }
 
 impl Machine {
+    /// Create a specific number of machines with default impl
     pub fn create_n_machines(count: i32) -> Vec<Self> {
         (1..=count).map(Self::new).collect()
     }
@@ -38,21 +22,28 @@ impl Machine {
     pub fn new(machine_num: i32) -> Self {
         Self {
             reels: std::array::from_fn(Reel::new),
-            name: format!("Machine {machine_num}"),
+            _name: format!("Machine {machine_num}"),
+            _paylines: Vec::new(),
         }
     }
 
+    /// Spin the reels on the machine
     pub fn spin(&mut self) {
         let mut rng = rand::rng();
         for reel in &mut self.reels {
             reel.spin(&mut rng);
         }
     }
+
+    pub fn get_all_paylines(&self, _lines: i32) {
+        // todo, get all paylines here and push them onto the machine
+        todo!()
+    }
 }
 
 #[derive(Debug)]
 pub struct Reel {
-    symbols: Vec<char>,
+    symbols: Vec<Symbols>,
     ptr: usize,
 }
 
