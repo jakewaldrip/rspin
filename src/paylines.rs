@@ -28,29 +28,32 @@ impl Paylines {
 // caller could just extract reels into the visible slice (fn on reels to do this)
 // machines.map(|machine| let x = machine.reels.map(extract); check_fn_ptrs.map(|fn_ptr| fn_ptr(x)))
 
-/// Pass a slice of reels, with a slice representing the visible area
-/// 0 is top, 1 is middle, 2 is bottom
-/// 0 - 4 is outer
-pub fn check_hor_xl(_reels: &[&[Symbols]]) -> bool {
+// Pass a slice of reels, with a slice representing the visible area
+// 0 is top, 1 is middle, 2 is bottom
+// 0 - 4 is outer
+
+pub type PaylineCheckerFn = fn(&[&[Symbols]]) -> Option<Paylines>;
+
+pub fn check_hor_xl(_reels: &[&[Symbols]]) -> Option<Paylines> {
     todo!()
 }
 
-pub fn check_zig(_reels: &[&[Symbols]]) -> bool {
+pub fn check_zig(_reels: &[&[Symbols]]) -> Option<Paylines> {
     todo!()
 }
 
-pub fn check_zag(_reels: &[&[Symbols]]) -> bool {
+pub fn check_zag(_reels: &[&[Symbols]]) -> Option<Paylines> {
     todo!()
 }
 
-pub fn check_above(_reels: &[&[Symbols]]) -> bool {
+pub fn check_above(_reels: &[&[Symbols]]) -> Option<Paylines> {
     todo!()
 }
 
-pub fn check_below(_reels: &[&[Symbols]]) -> bool {
+pub fn check_below(_reels: &[&[Symbols]]) -> Option<Paylines> {
     todo!()
 }
 
-pub fn check_eye(_reels: &[&[Symbols]]) -> bool {
+pub fn check_eye(_reels: &[&[Symbols]]) -> Option<Paylines> {
     todo!()
 }

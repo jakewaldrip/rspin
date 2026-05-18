@@ -1,7 +1,10 @@
 use rand::{Rng, RngExt, seq::SliceRandom};
 
 use crate::{
-    paylines::Paylines,
+    paylines::{
+        PaylineCheckerFn, Paylines, check_above, check_below, check_eye, check_hor_xl, check_zag,
+        check_zig,
+    },
     symbols::{REEL_STRIPS, Symbols},
 };
 
@@ -9,7 +12,7 @@ use crate::{
 pub struct Machine {
     pub reels: [Reel; 5],
     pub _name: String,
-    pub _paylines: Vec<Paylines>,
+    pub paylines: Vec<Paylines>,
 }
 
 impl Machine {
@@ -23,7 +26,7 @@ impl Machine {
         Self {
             reels: std::array::from_fn(Reel::new),
             _name: format!("Machine {machine_num}"),
-            _paylines: Vec::new(),
+            paylines: Vec::new(),
         }
     }
 
@@ -35,8 +38,30 @@ impl Machine {
         }
     }
 
-    pub fn get_all_paylines(&self, _lines: i32) {
-        // todo, get all paylines here and push them onto the machine
+    pub fn get_all_paylines(&mut self, _lines: i32) {
+        const PAYLINES_TO_CHECK: [PaylineCheckerFn; 6] = [
+            check_hor_xl,
+            check_zig,
+            check_zag,
+            check_above,
+            check_below,
+            check_eye,
+        ];
+
+        let visible_symbols = self.get_visible_symbols();
+        for payline_checker in &PAYLINES_TO_CHECK {
+            if let Some(payline) = payline_checker(
+                &visible_symbols
+                    .iter()
+                    .map(|v| v.as_slice())
+                    .collect::<Vec<_>>(),
+            ) {
+                self.paylines.push(payline);
+            }
+        }
+    }
+
+    fn get_visible_symbols(&self) -> Vec<Vec<Symbols>> {
         todo!()
     }
 }
