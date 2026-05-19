@@ -2,6 +2,11 @@ use crate::symbols::Symbols;
 
 #[derive(Debug)]
 pub enum Paylines {
+    HorSM(Symbols),
+    AboveSM(Symbols),
+    BelowSM(Symbols),
+    ZigSM(Symbols),
+    ZagSM(Symbols),
     HorXL(Symbols),
     Zig(Symbols),
     Zag(Symbols),
@@ -11,49 +16,141 @@ pub enum Paylines {
 }
 
 impl Paylines {
-    pub fn get_payout(&self) -> i32 {
+    pub fn get_payout(&self, bet: i32) -> i32 {
         match self {
-            Paylines::HorXL(symbol) => symbol.get_value() * 3,
-            Paylines::Zig(symbol) => symbol.get_value() * 4,
-            Paylines::Zag(symbol) => symbol.get_value() * 4,
-            Paylines::Above(symbol) => symbol.get_value() * 8,
-            Paylines::Below(symbol) => symbol.get_value() * 8,
-            Paylines::Eye(symbol) => symbol.get_value() * 10,
+            Paylines::HorSM(symbol) => symbol.get_value() * bet,
+            Paylines::AboveSM(symbol) => symbol.get_value() * bet,
+            Paylines::BelowSM(symbol) => symbol.get_value() * bet,
+            Paylines::ZigSM(symbol) => symbol.get_value() * 2 * bet,
+            Paylines::ZagSM(symbol) => symbol.get_value() * 2 * bet,
+            Paylines::HorXL(symbol) => symbol.get_value() * 3 * bet,
+            Paylines::Zig(symbol) => symbol.get_value() * 4 * bet,
+            Paylines::Zag(symbol) => symbol.get_value() * 4 * bet,
+            Paylines::Above(symbol) => symbol.get_value() * 8 * bet,
+            Paylines::Below(symbol) => symbol.get_value() * 8 * bet,
+            Paylines::Eye(symbol) => symbol.get_value() * 10 * bet,
         }
     }
 }
 
-// todo, consider putting fn pointers to the below in a slice and executing the whole slice
-// something eventually returning Option<Paylines> for simplicity
-// caller could just extract reels into the visible slice (fn on reels to do this)
-// machines.map(|machine| let x = machine.reels.map(extract); check_fn_ptrs.map(|fn_ptr| fn_ptr(x)))
+// pass a slice of rows (0=top, 1=middle, 2=bottom),
+// each row containing 5 symbols (one per reel, columns 0-4)
+fn check_payline(visible_reels: &[&[Symbols]], positions: &[(usize, usize)]) -> Option<Symbols> {
+    // Find the first non-wild symbol to use as the target
+    let target = positions
+        .iter()
+        .map(|&(row, col)| &visible_reels[row][col])
+        .find(|s| **s != Symbols::Wild);
 
-// Pass a slice of reels, with a slice representing the visible area
-// 0 is top, 1 is middle, 2 is bottom
-// 0 - 4 is outer
+    // All positions are wild gives no payout (Wild has no value on its own)
+    // Consider revisiting this. I don't want to overcomplicate the logic here,
+    // but getting a wild payout would feel nice
+    let target = target?;
+
+    if positions.iter().all(|&(row, col)| {
+        visible_reels[row][col] == *target || visible_reels[row][col] == Symbols::Wild
+    }) {
+        Some(target.clone())
+    } else {
+        None
+    }
+}
 
 pub type PaylineCheckerFn = fn(&[&[Symbols]]) -> Option<Paylines>;
 
-pub fn check_hor_xl(_reels: &[&[Symbols]]) -> Option<Paylines> {
-    todo!()
+///
+/// . - - - .
+///
+pub fn check_hor_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 3] = [(1, 1), (1, 2), (1, 3)];
+    check_payline(visible_reels, &positions).map(Paylines::HorSM)
 }
 
-pub fn check_zig(_reels: &[&[Symbols]]) -> Option<Paylines> {
-    todo!()
+/// . - - - .
+///
+///
+pub fn check_above_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 3] = [(0, 1), (0, 2), (0, 3)];
+    check_payline(visible_reels, &positions).map(Paylines::AboveSM)
 }
 
-pub fn check_zag(_reels: &[&[Symbols]]) -> Option<Paylines> {
-    todo!()
+///
+///
+/// . - - - .
+pub fn check_below_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 3] = [(2, 1), (2, 2), (2, 3)];
+    check_payline(visible_reels, &positions).map(Paylines::BelowSM)
 }
 
-pub fn check_above(_reels: &[&[Symbols]]) -> Option<Paylines> {
-    todo!()
+///       -
+///   -
+/// -
+pub fn check_zig_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 3] = [(2, 1), (1, 2), (0, 3)];
+    check_payline(visible_reels, &positions).map(Paylines::ZigSM)
 }
 
-pub fn check_below(_reels: &[&[Symbols]]) -> Option<Paylines> {
-    todo!()
+/// -
+///   -
+///     -
+pub fn check_zag_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 3] = [(0, 1), (1, 2), (2, 3)];
+    check_payline(visible_reels, &positions).map(Paylines::ZagSM)
 }
 
-pub fn check_eye(_reels: &[&[Symbols]]) -> Option<Paylines> {
-    todo!()
+///
+/// -----
+///
+pub fn check_hor_xl(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 5] = [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4)];
+    check_payline(visible_reels, &positions).map(Paylines::HorXL)
+}
+
+///   -
+///  - -
+/// -   -
+pub fn check_zig(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 5] = [(2, 0), (1, 1), (0, 2), (1, 3), (2, 4)];
+    check_payline(visible_reels, &positions).map(Paylines::Zig)
+}
+
+/// -   -
+///  - -
+///   -
+pub fn check_zag(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 5] = [(0, 0), (1, 1), (2, 2), (1, 3), (0, 4)];
+    check_payline(visible_reels, &positions).map(Paylines::Zag)
+}
+
+/// -----
+///
+///
+pub fn check_above(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 5] = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)];
+    check_payline(visible_reels, &positions).map(Paylines::Above)
+}
+
+///
+///
+/// -----
+pub fn check_below(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 5] = [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)];
+    check_payline(visible_reels, &positions).map(Paylines::Below)
+}
+
+///  ---
+/// -   -
+///  ---
+pub fn check_eye(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
+    let positions: [(usize, usize); 8] = [
+        (1, 0),
+        (0, 1),
+        (2, 1),
+        (0, 2),
+        (2, 2),
+        (0, 3),
+        (2, 3),
+        (1, 4),
+    ];
+    check_payline(visible_reels, &positions).map(Paylines::Eye)
 }

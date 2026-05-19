@@ -2,8 +2,8 @@ use rand::{Rng, RngExt, seq::SliceRandom};
 
 use crate::{
     paylines::{
-        PaylineCheckerFn, Paylines, check_above, check_below, check_eye, check_hor_xl, check_zag,
-        check_zig,
+        PaylineCheckerFn, Paylines, check_above, check_above_sm, check_below, check_below_sm,
+        check_eye, check_hor_sm, check_hor_xl, check_zag, check_zag_sm, check_zig, check_zig_sm,
     },
     symbols::{REEL_STRIPS, Symbols},
 };
@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Machine {
     pub reels: [Reel; 5],
-    pub _name: String,
+    pub name: String,
     pub paylines: Vec<Paylines>,
 }
 
@@ -25,7 +25,7 @@ impl Machine {
     pub fn new(machine_num: i32) -> Self {
         Self {
             reels: std::array::from_fn(Reel::new),
-            _name: format!("Machine {machine_num}"),
+            name: format!("Machine {machine_num}"),
             paylines: Vec::new(),
         }
     }
@@ -38,8 +38,13 @@ impl Machine {
         }
     }
 
-    pub fn get_all_paylines(&mut self, _lines: i32) {
-        const PAYLINES_TO_CHECK: [PaylineCheckerFn; 6] = [
+    pub fn get_all_paylines(&mut self) {
+        const PAYLINES_TO_CHECK: [PaylineCheckerFn; 11] = [
+            check_hor_sm,
+            check_above_sm,
+            check_below_sm,
+            check_zig_sm,
+            check_zag_sm,
             check_hor_xl,
             check_zig,
             check_zag,
@@ -49,20 +54,29 @@ impl Machine {
         ];
 
         let visible_symbols = self.get_visible_symbols();
+        let slices: Vec<&[Symbols]> = visible_symbols.iter().map(|v| v.as_slice()).collect();
         for payline_checker in &PAYLINES_TO_CHECK {
-            if let Some(payline) = payline_checker(
-                &visible_symbols
-                    .iter()
-                    .map(|v| v.as_slice())
-                    .collect::<Vec<_>>(),
-            ) {
+            if let Some(payline) = payline_checker(&slices) {
                 self.paylines.push(payline);
             }
         }
     }
 
     fn get_visible_symbols(&self) -> Vec<Vec<Symbols>> {
-        todo!()
+        let mut rows = vec![Vec::new(), Vec::new(), Vec::new()];
+
+        for reel in &self.reels {
+            let len = reel.symbols.len();
+            let mid = reel.ptr;
+            let above = (mid + len - 1) % len;
+            let below = (mid + 1) % len;
+
+            rows[0].push(reel.symbols[above].clone());
+            rows[1].push(reel.symbols[mid].clone());
+            rows[2].push(reel.symbols[below].clone());
+        }
+
+        rows
     }
 }
 
