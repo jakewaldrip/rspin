@@ -111,6 +111,7 @@ impl TerminalUI {
         // positions that contributed to the pay so we can translate them here
         // Change color of the relevant positions
         // Make it blink as well
+        // TODO: Calculate starting position for each reel
         match animation_state.animation_type {
             AnimationType::Wait => {
                 let visible_symbols = get_visible_symbols_for_reel(&machine.reels, Some(0));
