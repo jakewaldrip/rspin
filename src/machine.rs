@@ -1,6 +1,7 @@
 use rand::{Rng, RngExt, seq::SliceRandom};
 
 use crate::{
+    animation_state::SPINNING_FRAME_TIME,
     paylines::{
         PaylineCheckerFn, Paylines, check_above, check_above_sm, check_below, check_below_sm,
         check_eye, check_hor_sm, check_hor_xl, check_zag, check_zag_sm, check_zig, check_zig_sm,
@@ -69,14 +70,14 @@ impl Machine {
 
 pub fn get_visible_symbols_for_reel(
     reels: &[Reel; 5],
-    mid_override: Option<usize>,
+    mid_override: Option<&[usize]>,
 ) -> Vec<Vec<Symbols>> {
     let mut rows = vec![Vec::new(), Vec::new(), Vec::new()];
 
-    for reel in reels {
+    for (i, reel) in reels.iter().enumerate() {
         let len = reel.symbols.len();
         let mid = if let Some(mid) = mid_override {
-            mid
+            mid[i]
         } else {
             reel.ptr
         };
@@ -90,6 +91,18 @@ pub fn get_visible_symbols_for_reel(
     }
 
     rows
+}
+
+pub fn calc_reel_starting_points(machine: &Machine) -> Vec<usize> {
+    let mut starting_points: Vec<usize> = Vec::new();
+    for reel in &machine.reels {
+        // Working backwards from reel.ptr by SPINNING_FRAME_TIME steps (with wrapping)
+        // gives us the index where the spin animation should begin so it lands on reel.ptr
+        let len = reel.symbols.len();
+        let start = (reel.ptr + len - SPINNING_FRAME_TIME % len) % len;
+        starting_points.push(start);
+    }
+    starting_points
 }
 
 #[derive(Debug, Clone)]

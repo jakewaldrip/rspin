@@ -1,16 +1,21 @@
 const INITIAL_WAIT_FRAME: usize = 10;
-const SPINNING_FRAME_TIME: usize = 20;
+pub const SPINNING_FRAME_TIME: usize = 20;
 const STOPPED_FRAME_TIME: usize = 50;
+const SHOW_WINNINGS_FRAME_TIME: usize = 50;
 pub const LEVER_PULL_FRAME_TIME: usize = 5;
 
-pub const ANIMATION_TIME_FLOOR: usize =
-    INITIAL_WAIT_FRAME + SPINNING_FRAME_TIME + STOPPED_FRAME_TIME + LEVER_PULL_FRAME_TIME;
+pub const ANIMATION_TIME_FLOOR: usize = INITIAL_WAIT_FRAME
+    + SPINNING_FRAME_TIME
+    + STOPPED_FRAME_TIME
+    + LEVER_PULL_FRAME_TIME
+    + SHOW_WINNINGS_FRAME_TIME;
 pub const ANIMATION_TIME_MACHINE_FACTOR: usize = INITIAL_WAIT_FRAME + LEVER_PULL_FRAME_TIME;
 
 pub enum AnimationType {
     Wait,
     LeverPull,
     Spinning,
+    ShowWinnings,
     Stopped,
 }
 
@@ -43,7 +48,8 @@ impl AnimationState {
         match self.animation_type {
             AnimationType::Wait => (AnimationType::LeverPull, LEVER_PULL_FRAME_TIME),
             AnimationType::LeverPull => (AnimationType::Spinning, SPINNING_FRAME_TIME),
-            AnimationType::Spinning => (AnimationType::Stopped, STOPPED_FRAME_TIME),
+            AnimationType::Spinning => (AnimationType::ShowWinnings, SHOW_WINNINGS_FRAME_TIME),
+            AnimationType::ShowWinnings => (AnimationType::Stopped, STOPPED_FRAME_TIME),
             AnimationType::Stopped => (AnimationType::Stopped, STOPPED_FRAME_TIME),
         }
     }

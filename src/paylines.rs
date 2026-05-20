@@ -2,33 +2,33 @@ use crate::symbols::Symbols;
 
 #[derive(Debug, Clone)]
 pub enum Paylines {
-    HorSM(Symbols),
-    AboveSM(Symbols),
-    BelowSM(Symbols),
-    ZigSM(Symbols),
-    ZagSM(Symbols),
-    HorXL(Symbols),
-    Zig(Symbols),
-    Zag(Symbols),
-    Above(Symbols),
-    Below(Symbols),
-    Eye(Symbols),
+    HorSM(Symbols, Vec<(usize, usize)>),
+    AboveSM(Symbols, Vec<(usize, usize)>),
+    BelowSM(Symbols, Vec<(usize, usize)>),
+    ZigSM(Symbols, Vec<(usize, usize)>),
+    ZagSM(Symbols, Vec<(usize, usize)>),
+    HorXL(Symbols, Vec<(usize, usize)>),
+    Zig(Symbols, Vec<(usize, usize)>),
+    Zag(Symbols, Vec<(usize, usize)>),
+    Above(Symbols, Vec<(usize, usize)>),
+    Below(Symbols, Vec<(usize, usize)>),
+    Eye(Symbols, Vec<(usize, usize)>),
 }
 
 impl Paylines {
     pub fn get_payout(&self, bet: i32) -> i32 {
         match self {
-            Paylines::HorSM(symbol) => symbol.get_value() * bet,
-            Paylines::AboveSM(symbol) => symbol.get_value() * bet,
-            Paylines::BelowSM(symbol) => symbol.get_value() * bet,
-            Paylines::ZigSM(symbol) => symbol.get_value() * 2 * bet,
-            Paylines::ZagSM(symbol) => symbol.get_value() * 2 * bet,
-            Paylines::HorXL(symbol) => symbol.get_value() * 3 * bet,
-            Paylines::Zig(symbol) => symbol.get_value() * 4 * bet,
-            Paylines::Zag(symbol) => symbol.get_value() * 4 * bet,
-            Paylines::Above(symbol) => symbol.get_value() * 8 * bet,
-            Paylines::Below(symbol) => symbol.get_value() * 8 * bet,
-            Paylines::Eye(symbol) => symbol.get_value() * 10 * bet,
+            Paylines::HorSM(symbol, _) => symbol.get_value() * bet,
+            Paylines::AboveSM(symbol, _) => symbol.get_value() * bet,
+            Paylines::BelowSM(symbol, _) => symbol.get_value() * bet,
+            Paylines::ZigSM(symbol, _) => symbol.get_value() * 2 * bet,
+            Paylines::ZagSM(symbol, _) => symbol.get_value() * 2 * bet,
+            Paylines::HorXL(symbol, _) => symbol.get_value() * 3 * bet,
+            Paylines::Zig(symbol, _) => symbol.get_value() * 4 * bet,
+            Paylines::Zag(symbol, _) => symbol.get_value() * 4 * bet,
+            Paylines::Above(symbol, _) => symbol.get_value() * 8 * bet,
+            Paylines::Below(symbol, _) => symbol.get_value() * 8 * bet,
+            Paylines::Eye(symbol, _) => symbol.get_value() * 10 * bet,
         }
     }
 }
@@ -63,7 +63,8 @@ pub type PaylineCheckerFn = fn(&[&[Symbols]]) -> Option<Paylines>;
 ///
 pub fn check_hor_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 3] = [(1, 1), (1, 2), (1, 3)];
-    check_payline(visible_reels, &positions).map(Paylines::HorSM)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::HorSM(symbols, positions_vec))
 }
 
 /// . - - - .
@@ -71,7 +72,9 @@ pub fn check_hor_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 ///
 pub fn check_above_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 3] = [(0, 1), (0, 2), (0, 3)];
-    check_payline(visible_reels, &positions).map(Paylines::AboveSM)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions)
+        .map(|symbols| Paylines::AboveSM(symbols, positions_vec))
 }
 
 ///
@@ -79,15 +82,18 @@ pub fn check_above_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 /// . - - - .
 pub fn check_below_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 3] = [(2, 1), (2, 2), (2, 3)];
-    check_payline(visible_reels, &positions).map(Paylines::BelowSM)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions)
+        .map(|symbols| Paylines::BelowSM(symbols, positions_vec))
 }
 
-///       -
+///     -
 ///   -
 /// -
 pub fn check_zig_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 3] = [(2, 1), (1, 2), (0, 3)];
-    check_payline(visible_reels, &positions).map(Paylines::ZigSM)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::ZigSM(symbols, positions_vec))
 }
 
 /// -
@@ -95,7 +101,8 @@ pub fn check_zig_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 ///     -
 pub fn check_zag_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 3] = [(0, 1), (1, 2), (2, 3)];
-    check_payline(visible_reels, &positions).map(Paylines::ZagSM)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::ZagSM(symbols, positions_vec))
 }
 
 ///
@@ -103,7 +110,8 @@ pub fn check_zag_sm(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 ///
 pub fn check_hor_xl(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 5] = [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4)];
-    check_payline(visible_reels, &positions).map(Paylines::HorXL)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::HorXL(symbols, positions_vec))
 }
 
 ///   -
@@ -111,7 +119,8 @@ pub fn check_hor_xl(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 /// -   -
 pub fn check_zig(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 5] = [(2, 0), (1, 1), (0, 2), (1, 3), (2, 4)];
-    check_payline(visible_reels, &positions).map(Paylines::Zig)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::Zig(symbols, positions_vec))
 }
 
 /// -   -
@@ -119,7 +128,8 @@ pub fn check_zig(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 ///   -
 pub fn check_zag(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 5] = [(0, 0), (1, 1), (2, 2), (1, 3), (0, 4)];
-    check_payline(visible_reels, &positions).map(Paylines::Zag)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::Zag(symbols, positions_vec))
 }
 
 /// -----
@@ -127,7 +137,8 @@ pub fn check_zag(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 ///
 pub fn check_above(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 5] = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)];
-    check_payline(visible_reels, &positions).map(Paylines::Above)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::Above(symbols, positions_vec))
 }
 
 ///
@@ -135,7 +146,8 @@ pub fn check_above(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
 /// -----
 pub fn check_below(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
     let positions: [(usize, usize); 5] = [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)];
-    check_payline(visible_reels, &positions).map(Paylines::Below)
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::Below(symbols, positions_vec))
 }
 
 ///  ---
@@ -152,5 +164,7 @@ pub fn check_eye(visible_reels: &[&[Symbols]]) -> Option<Paylines> {
         (2, 3),
         (1, 4),
     ];
-    check_payline(visible_reels, &positions).map(Paylines::Eye)
+
+    let positions_vec = positions.to_vec();
+    check_payline(visible_reels, &positions).map(|symbols| Paylines::Eye(symbols, positions_vec))
 }

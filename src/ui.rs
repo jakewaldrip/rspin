@@ -12,10 +12,12 @@ use crate::{
         ANIMATION_TIME_FLOOR, ANIMATION_TIME_MACHINE_FACTOR, AnimationState, AnimationType,
         LEVER_PULL_FRAME_TIME,
     },
-    machine::{Machine, get_visible_symbols_for_reel},
+    machine::{Machine, calc_reel_starting_points, get_visible_symbols_for_reel},
 };
 
 const FRAME_MS: u64 = 80;
+const LEFT_PADDING: usize = 5;
+const REEL_WIDTH: usize = 3;
 
 pub struct TerminalUI {
     stdout: io::Stdout,
@@ -106,7 +108,26 @@ impl TerminalUI {
             (*machine.name).yellow()
         )?;
 
-        // TODO: add box around the machine (vimscape has the relevant glyphs)
+        // Make top of machine
+        // │ ┌ ┐ └ ┘ ┬ ┴ ─
+        execute!(
+            self.stdout,
+            cursor::MoveToColumn(0),
+            Clear(ClearType::UntilNewLine)
+        )?;
+        writeln!(
+            self.stdout,
+            "{}┌{}┬{}┬{}┬{}┬{}┐",
+            " ".repeat(LEFT_PADDING),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+        )?;
+
+        let reel_mid_overrides = calc_reel_starting_points(machine);
+
         // TODO: add state for showing pay lines, might need to refactor paylines to include the
         // positions that contributed to the pay so we can translate them here
         // Change color of the relevant positions
@@ -114,7 +135,8 @@ impl TerminalUI {
         // TODO: Calculate starting position for each reel
         match animation_state.animation_type {
             AnimationType::Wait => {
-                let visible_symbols = get_visible_symbols_for_reel(&machine.reels, Some(0));
+                let visible_symbols =
+                    get_visible_symbols_for_reel(&machine.reels, Some(&reel_mid_overrides));
                 for (row_idx, row) in visible_symbols.iter().enumerate() {
                     // Cursor back to the front
                     execute!(
@@ -127,8 +149,8 @@ impl TerminalUI {
                     let lever = if row_idx == 0 { " O" } else { "  " };
                     writeln!(
                         self.stdout,
-                        "{}| {} | {} | {} | {} | {} |{}",
-                        " ".repeat(5),
+                        "{}│ {} │ {} │ {} │ {} │ {} │ {}",
+                        " ".repeat(LEFT_PADDING),
                         row[0],
                         row[1],
                         row[2],
@@ -153,7 +175,8 @@ impl TerminalUI {
                     }
                 };
 
-                let visible_symbols = get_visible_symbols_for_reel(&machine.reels, Some(0));
+                let visible_symbols =
+                    get_visible_symbols_for_reel(&machine.reels, Some(&reel_mid_overrides));
                 for (row_idx, row) in visible_symbols.iter().enumerate() {
                     execute!(
                         self.stdout,
@@ -162,8 +185,8 @@ impl TerminalUI {
                     )?;
                     writeln!(
                         self.stdout,
-                        "{}| {} | {} | {} | {} | {} |{}",
-                        " ".repeat(5),
+                        "{}│ {} │ {} │ {} │ {} │ {} │ {}",
+                        " ".repeat(LEFT_PADDING),
                         row[0],
                         row[1],
                         row[2],
@@ -174,8 +197,17 @@ impl TerminalUI {
                 }
             }
             AnimationType::Spinning => {
-                let visible_symbols =
-                    get_visible_symbols_for_reel(&machine.reels, Some(frame as usize % 20));
+                let spinning_mid_override = frame % 20;
+                let visible_symbols = get_visible_symbols_for_reel(
+                    &machine.reels,
+                    Some(&[
+                        spinning_mid_override,
+                        spinning_mid_override,
+                        spinning_mid_override,
+                        spinning_mid_override,
+                        spinning_mid_override,
+                    ]),
+                );
                 for (row_idx, row) in visible_symbols.iter().enumerate() {
                     // Cursor back to the front
                     execute!(
@@ -188,8 +220,8 @@ impl TerminalUI {
                     let lever = if row_idx == 0 { " O" } else { "  " };
                     writeln!(
                         self.stdout,
-                        "{}| {} | {} | {} | {} | {} |{}",
-                        " ".repeat(5),
+                        "{}│ {} │ {} │ {} │ {} │ {} │ {}",
+                        " ".repeat(LEFT_PADDING),
                         row[0],
                         row[1],
                         row[2],
@@ -198,6 +230,11 @@ impl TerminalUI {
                         lever,
                     )?;
                 }
+            }
+            AnimationType::ShowWinnings => {
+                // Cycle through winnings, making the winning numbers a different color
+                // swap color per winning frame, steady then blink off for Y frames every X frame
+                todo!()
             }
             AnimationType::Stopped => {
                 let visible_symbols = get_visible_symbols_for_reel(&machine.reels, None);
@@ -213,8 +250,8 @@ impl TerminalUI {
                     let lever = if row_idx == 0 { " O" } else { "  " };
                     writeln!(
                         self.stdout,
-                        "{}| {} | {} | {} | {} | {} |{}",
-                        " ".repeat(5),
+                        "{}│ {} │ {} │ {} │ {} │ {} │ {}",
+                        " ".repeat(LEFT_PADDING),
                         row[0],
                         row[1],
                         row[2],
@@ -226,7 +263,23 @@ impl TerminalUI {
             }
         }
 
-        // Slot machine rows
+        // Make bottom of machine
+        // │ ┌ ┐ └ ┘ ┬ ┴ ─
+        execute!(
+            self.stdout,
+            cursor::MoveToColumn(0),
+            Clear(ClearType::UntilNewLine)
+        )?;
+        writeln!(
+            self.stdout,
+            "{}└{}┴{}┴{}┴{}┴{}┘",
+            " ".repeat(LEFT_PADDING),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+            "─".repeat(REEL_WIDTH),
+        )?;
 
         // Spacer
         execute!(
