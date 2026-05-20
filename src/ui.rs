@@ -8,7 +8,10 @@ use std::thread;
 use std::time::Duration;
 
 use crate::{
-    animation_state::{AnimationState, AnimationType},
+    animation_state::{
+        ANIMATION_TIME_FLOOR, ANIMATION_TIME_MACHINE_FACTOR, AnimationState, AnimationType,
+        LEVER_PULL_FRAME_TIME,
+    },
     machine::{Machine, get_visible_symbols_for_reel},
 };
 
@@ -64,7 +67,9 @@ impl TerminalUI {
             .map(|(i, machine)| (machine.clone(), AnimationState::new(i)))
             .collect();
 
-        for frame in 0..100 {
+        let total_frames: usize =
+            ANIMATION_TIME_FLOOR + (ANIMATION_TIME_MACHINE_FACTOR * machines.len());
+        for frame in 0..total_frames {
             // Move to the top of the stage
             execute!(self.stdout, cursor::MoveUp(total_lines as u16))?;
             writeln!(self.stdout)?;
@@ -80,12 +85,11 @@ impl TerminalUI {
         Ok(())
     }
 
-    // todo: add a little handle that gets pulled on frames x -> y for a static animation
     fn render_machine_inline(
         &mut self,
         machine: &mut Machine,
         animation_state: &mut AnimationState,
-        frame: i32,
+        frame: usize,
     ) -> io::Result<()> {
         // Go to top
         execute!(
@@ -102,10 +106,15 @@ impl TerminalUI {
             (*machine.name).yellow()
         )?;
 
+        // TODO: add box around the machine (vimscape has the relevant glyphs)
+        // TODO: add state for showing pay lines, might need to refactor paylines to include the
+        // positions that contributed to the pay so we can translate them here
+        // Change color of the relevant positions
+        // Make it blink as well
         match animation_state.animation_type {
             AnimationType::Wait => {
                 let visible_symbols = get_visible_symbols_for_reel(&machine.reels, Some(0));
-                for row in visible_symbols {
+                for (row_idx, row) in visible_symbols.iter().enumerate() {
                     // Cursor back to the front
                     execute!(
                         self.stdout,
@@ -113,18 +122,60 @@ impl TerminalUI {
                         Clear(ClearType::UntilNewLine)
                     )?;
 
-                    // Draw row here
+                    // Draw row here, lever resting at top
+                    let lever = if row_idx == 0 { " O" } else { "  " };
                     writeln!(
                         self.stdout,
-                        "  [ {} ] [ {} ] [ {} ] [ {} ] [ {} ]",
-                        row[0], row[1], row[2], row[3], row[4]
+                        "{}| {} | {} | {} | {} | {} |{}",
+                        " ".repeat(5),
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3],
+                        row[4],
+                        lever
+                    )?;
+                }
+            }
+            AnimationType::LeverPull => {
+                let lever_frame =
+                    (LEVER_PULL_FRAME_TIME - 1).saturating_sub(animation_state.frames_remaining);
+
+                let lever_suffix = |row_idx: usize| -> &'static str {
+                    match (lever_frame, row_idx) {
+                        (0, 0) | (4, 0) => " O", // handle at top
+                        (1, 0) | (3, 0) => " |", // shaft at top, handle mid
+                        (1, 1) | (3, 1) => " O", // handle at middle
+                        (2, 0) | (2, 1) => " |", // shaft trailing
+                        (2, 2) => " O",          // handle at bottom (fully pulled)
+                        _ => "  ",               // nothing
+                    }
+                };
+
+                let visible_symbols = get_visible_symbols_for_reel(&machine.reels, Some(0));
+                for (row_idx, row) in visible_symbols.iter().enumerate() {
+                    execute!(
+                        self.stdout,
+                        cursor::MoveToColumn(0),
+                        Clear(ClearType::UntilNewLine)
+                    )?;
+                    writeln!(
+                        self.stdout,
+                        "{}| {} | {} | {} | {} | {} |{}",
+                        " ".repeat(5),
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3],
+                        row[4],
+                        lever_suffix(row_idx)
                     )?;
                 }
             }
             AnimationType::Spinning => {
                 let visible_symbols =
                     get_visible_symbols_for_reel(&machine.reels, Some(frame as usize % 20));
-                for row in visible_symbols {
+                for (row_idx, row) in visible_symbols.iter().enumerate() {
                     // Cursor back to the front
                     execute!(
                         self.stdout,
@@ -133,16 +184,23 @@ impl TerminalUI {
                     )?;
 
                     // Draw row here
+                    let lever = if row_idx == 0 { " O" } else { "  " };
                     writeln!(
                         self.stdout,
-                        "  [ {} ] [ {} ] [ {} ] [ {} ] [ {} ]",
-                        row[0], row[1], row[2], row[3], row[4]
+                        "{}| {} | {} | {} | {} | {} |{}",
+                        " ".repeat(5),
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3],
+                        row[4],
+                        lever,
                     )?;
                 }
             }
             AnimationType::Stopped => {
-                let visible_symbols = get_visible_symbols_for_reel(&machine.reels, Some(0));
-                for row in visible_symbols {
+                let visible_symbols = get_visible_symbols_for_reel(&machine.reels, None);
+                for (row_idx, row) in visible_symbols.iter().enumerate() {
                     // Cursor back to the front
                     execute!(
                         self.stdout,
@@ -150,11 +208,18 @@ impl TerminalUI {
                         Clear(ClearType::UntilNewLine)
                     )?;
 
-                    // Draw row here
+                    // Draw row here, lever resting at top
+                    let lever = if row_idx == 0 { " O" } else { "  " };
                     writeln!(
                         self.stdout,
-                        "  [ {} ] [ {} ] [ {} ] [ {} ] [ {} ]",
-                        row[0], row[1], row[2], row[3], row[4]
+                        "{}| {} | {} | {} | {} | {} |{}",
+                        " ".repeat(5),
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3],
+                        row[4],
+                        lever
                     )?;
                 }
             }
