@@ -8,7 +8,7 @@ use crate::{
     symbols::{REEL_STRIPS, Symbols},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Machine {
     pub reels: [Reel; 5],
     pub name: String,
@@ -53,7 +53,7 @@ impl Machine {
             check_eye,
         ];
 
-        let visible_symbols = self.get_visible_symbols();
+        let visible_symbols = self.get_visible_symbols_for_payout();
         let slices: Vec<&[Symbols]> = visible_symbols.iter().map(|v| v.as_slice()).collect();
         for payline_checker in &PAYLINES_TO_CHECK {
             if let Some(payline) = payline_checker(&slices) {
@@ -62,25 +62,37 @@ impl Machine {
         }
     }
 
-    fn get_visible_symbols(&self) -> Vec<Vec<Symbols>> {
-        let mut rows = vec![Vec::new(), Vec::new(), Vec::new()];
-
-        for reel in &self.reels {
-            let len = reel.symbols.len();
-            let mid = reel.ptr;
-            let above = (mid + len - 1) % len;
-            let below = (mid + 1) % len;
-
-            rows[0].push(reel.symbols[above].clone());
-            rows[1].push(reel.symbols[mid].clone());
-            rows[2].push(reel.symbols[below].clone());
-        }
-
-        rows
+    pub fn get_visible_symbols_for_payout(&self) -> Vec<Vec<Symbols>> {
+        get_visible_symbols_for_reel(&self.reels, None)
     }
 }
 
-#[derive(Debug)]
+pub fn get_visible_symbols_for_reel(
+    reels: &[Reel; 5],
+    mid_override: Option<usize>,
+) -> Vec<Vec<Symbols>> {
+    let mut rows = vec![Vec::new(), Vec::new(), Vec::new()];
+
+    for reel in reels {
+        let len = reel.symbols.len();
+        let mid = if let Some(mid) = mid_override {
+            mid
+        } else {
+            reel.ptr
+        };
+
+        let above = (mid + len - 1) % len;
+        let below = (mid + 1) % len;
+
+        rows[0].push(reel.symbols[above].clone());
+        rows[1].push(reel.symbols[mid].clone());
+        rows[2].push(reel.symbols[below].clone());
+    }
+
+    rows
+}
+
+#[derive(Debug, Clone)]
 pub struct Reel {
     symbols: Vec<Symbols>,
     ptr: usize,

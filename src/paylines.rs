@@ -1,6 +1,6 @@
 use crate::symbols::Symbols;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Paylines {
     HorSM(Symbols),
     AboveSM(Symbols),

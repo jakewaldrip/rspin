@@ -1,3 +1,4 @@
+mod animation_state;
 mod database;
 mod machine;
 mod paylines;
@@ -69,20 +70,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // println!("Machines: {machines:?}");
 
             // begin animations
-            // ui.start(total_lines)?;
+            ui.start(total_lines)?;
 
             // the sauce is going to primarily be in the animations
             // we need to start it one reel at a time, n ms between, and stop them one at a time
             // with m ms between
             //
             // upon that finishes, we should then display
-            // ui.run_spin_animation(machines, total_lines)?;
+            ui.run_spin_animation(machines, total_lines)?;
 
             // todo: add a step here to display winning lines in a loop
             // we can either let that run for Y ms, or even better would be add a
             // press any button to continue to pause here before moving onto .finish()
 
-            // ui.finish(total_lines)?;
+            ui.finish(total_lines)?;
 
             database.balance += total_winnings;
             database.save()?;

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Symbols {
     Circle,
@@ -9,6 +11,23 @@ pub enum Symbols {
     AndSign,
     Jackpot,
     Wild,
+}
+
+impl Display for Symbols {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let symbol = match self {
+            Symbols::Circle => "O",
+            Symbols::Hashtag => "#",
+            Symbols::Dollar => "$",
+            Symbols::AtSign => "@",
+            Symbols::Seven => "7",
+            Symbols::Astrisk => "*",
+            Symbols::AndSign => "&",
+            Symbols::Jackpot => "!",
+            Symbols::Wild => "X",
+        };
+        write!(f, "{}", symbol)
+    }
 }
 
 impl Symbols {
