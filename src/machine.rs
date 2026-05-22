@@ -14,20 +14,22 @@ pub struct Machine {
     pub reels: [Reel; 5],
     pub name: String,
     pub paylines: Vec<Paylines>,
+    pub bet: i32,
 }
 
 impl Machine {
     /// Create a specific number of machines with default impl
-    pub fn create_n_machines(count: i32) -> Vec<Self> {
-        (1..=count).map(Self::new).collect()
+    pub fn create_n_machines(count: i32, bet: i32) -> Vec<Self> {
+        (1..=count).map(|n| Self::new(n, bet)).collect()
     }
 
     /// Make a new machine with all the reels set
-    pub fn new(machine_num: i32) -> Self {
+    pub fn new(machine_num: i32, bet: i32) -> Self {
         Self {
             reels: std::array::from_fn(Reel::new),
             name: format!("Machine {machine_num}"),
             paylines: Vec::new(),
+            bet,
         }
     }
 

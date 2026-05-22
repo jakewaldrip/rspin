@@ -1,15 +1,29 @@
 const INITIAL_WAIT_FRAME: usize = 10;
-pub const SPINNING_FRAME_TIME: usize = 20;
-const STOPPED_FRAME_TIME: usize = 50;
-const SHOW_WINNINGS_FRAME_TIME: usize = 50;
+pub const SPINNING_FRAME_TIME: usize = 35;
+const STOPPED_FRAME_TIME: usize = 5;
+pub const FRAMES_PER_PAYLINE: usize = 25;
+const MIN_SHOW_WINNINGS_FRAMES: usize = 10;
 pub const LEVER_PULL_FRAME_TIME: usize = 5;
 
-pub const ANIMATION_TIME_FLOOR: usize = INITIAL_WAIT_FRAME
-    + SPINNING_FRAME_TIME
-    + STOPPED_FRAME_TIME
-    + LEVER_PULL_FRAME_TIME
-    + SHOW_WINNINGS_FRAME_TIME;
-pub const ANIMATION_TIME_MACHINE_FACTOR: usize = INITIAL_WAIT_FRAME + LEVER_PULL_FRAME_TIME;
+pub fn show_winnings_frames(max_paylines: usize) -> usize {
+    let dynamic = FRAMES_PER_PAYLINE * max_paylines;
+    if dynamic < MIN_SHOW_WINNINGS_FRAMES {
+        MIN_SHOW_WINNINGS_FRAMES
+    } else {
+        dynamic
+    }
+}
+
+/// Total frames for the entire animation across all machines.
+/// Earlier machines absorb the stagger into a longer ShowWinnings phase
+/// so all machines exit ShowWinnings at the same global frame.
+pub fn total_animation_frames(total_machines: usize, max_paylines: usize) -> usize {
+    (total_machines * INITIAL_WAIT_FRAME)
+        + LEVER_PULL_FRAME_TIME
+        + SPINNING_FRAME_TIME
+        + show_winnings_frames(max_paylines)
+        + STOPPED_FRAME_TIME
+}
 
 pub enum AnimationType {
     Wait,
@@ -24,13 +38,21 @@ pub enum AnimationType {
 pub struct AnimationState {
     pub animation_type: AnimationType,
     pub frames_remaining: usize,
+    pub show_winnings_duration: usize,
 }
 
 impl AnimationState {
-    pub fn new(machine_num: usize) -> Self {
+    pub fn new(machine_num: usize, total_machines: usize, max_paylines: usize) -> Self {
+        // Earlier machines enter ShowWinnings sooner due to the staggered start.
+        // They get extra ShowWinnings frames so all machines exit ShowWinnings
+        // at the same global frame. The last machine gets the base duration.
+        let show_winnings_duration = show_winnings_frames(max_paylines)
+            + (total_machines - 1 - machine_num) * INITIAL_WAIT_FRAME;
+
         Self {
             animation_type: AnimationType::Wait,
             frames_remaining: (machine_num + 1) * INITIAL_WAIT_FRAME,
+            show_winnings_duration,
         }
     }
 
@@ -48,7 +70,7 @@ impl AnimationState {
         match self.animation_type {
             AnimationType::Wait => (AnimationType::LeverPull, LEVER_PULL_FRAME_TIME),
             AnimationType::LeverPull => (AnimationType::Spinning, SPINNING_FRAME_TIME),
-            AnimationType::Spinning => (AnimationType::ShowWinnings, SHOW_WINNINGS_FRAME_TIME),
+            AnimationType::Spinning => (AnimationType::ShowWinnings, self.show_winnings_duration),
             AnimationType::ShowWinnings => (AnimationType::Stopped, STOPPED_FRAME_TIME),
             AnimationType::Stopped => (AnimationType::Stopped, STOPPED_FRAME_TIME),
         }

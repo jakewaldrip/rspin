@@ -31,6 +31,54 @@ impl Paylines {
             Paylines::Eye(symbol, _) => symbol.get_value() * 10 * bet,
         }
     }
+
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Paylines::HorSM(..) => "HorSM",
+            Paylines::AboveSM(..) => "AboveSM",
+            Paylines::BelowSM(..) => "BelowSM",
+            Paylines::ZigSM(..) => "ZigSM",
+            Paylines::ZagSM(..) => "ZagSM",
+            Paylines::HorXL(..) => "HorXL",
+            Paylines::Zig(..) => "Zig",
+            Paylines::Zag(..) => "Zag",
+            Paylines::Above(..) => "Above",
+            Paylines::Below(..) => "Below",
+            Paylines::Eye(..) => "Eye",
+        }
+    }
+
+    pub fn symbol(&self) -> &Symbols {
+        match self {
+            Paylines::HorSM(s, _) => s,
+            Paylines::AboveSM(s, _) => s,
+            Paylines::BelowSM(s, _) => s,
+            Paylines::ZigSM(s, _) => s,
+            Paylines::ZagSM(s, _) => s,
+            Paylines::HorXL(s, _) => s,
+            Paylines::Zig(s, _) => s,
+            Paylines::Zag(s, _) => s,
+            Paylines::Above(s, _) => s,
+            Paylines::Below(s, _) => s,
+            Paylines::Eye(s, _) => s,
+        }
+    }
+
+    pub fn positions(&self) -> &[(usize, usize)] {
+        match self {
+            Paylines::HorSM(_, p) => p,
+            Paylines::AboveSM(_, p) => p,
+            Paylines::BelowSM(_, p) => p,
+            Paylines::ZigSM(_, p) => p,
+            Paylines::ZagSM(_, p) => p,
+            Paylines::HorXL(_, p) => p,
+            Paylines::Zig(_, p) => p,
+            Paylines::Zag(_, p) => p,
+            Paylines::Above(_, p) => p,
+            Paylines::Below(_, p) => p,
+            Paylines::Eye(_, p) => p,
+        }
+    }
 }
 
 // pass a slice of rows (0=top, 1=middle, 2=bottom),
