@@ -20,6 +20,8 @@ use crate::{
 };
 
 // TODO: make this configurable (with a "fast mode")
+// TODO: add some debug prints/flag
+// TODO: add a session tracker, need to think through this
 const FRAME_MS: u64 = 80;
 const LEFT_PADDING: usize = 5;
 const REEL_WIDTH: usize = 3;
