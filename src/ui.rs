@@ -22,7 +22,6 @@ use crate::{
 // TODO: make this configurable (with a "fast mode")
 // TODO: add some debug prints/flag
 // TODO: add a session tracker, need to think through this
-// TODO: fix the blank lines under a finished session
 const FRAME_MS: u64 = 80;
 const LEFT_PADDING: usize = 5;
 const REEL_WIDTH: usize = 3;
@@ -69,7 +68,7 @@ impl TerminalUI {
         // Move back up one last time and wipe the stage clean.
         execute!(
             self.stdout,
-            cursor::MoveUp(total_lines as u16),
+            cursor::MoveUp((total_lines + 1) as u16),
             Clear(ClearType::FromCursorDown)
         )?;
 
