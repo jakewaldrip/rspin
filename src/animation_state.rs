@@ -15,8 +15,8 @@ pub fn show_winnings_frames(max_paylines: usize) -> usize {
 }
 
 /// Total frames for the entire animation across all machines.
-/// Earlier machines absorb the stagger into a longer ShowWinnings phase
-/// so all machines exit ShowWinnings at the same global frame.
+/// Earlier machines absorb the stagger into a longer `ShowWinnings` phase
+/// so all machines exit `ShowWinnings` at the same global frame.
 pub fn total_animation_frames(total_machines: usize, max_paylines: usize) -> usize {
     (total_machines * INITIAL_WAIT_FRAME)
         + LEVER_PULL_FRAME_TIME
@@ -71,8 +71,9 @@ impl AnimationState {
             AnimationType::Wait => (AnimationType::LeverPull, LEVER_PULL_FRAME_TIME),
             AnimationType::LeverPull => (AnimationType::Spinning, SPINNING_FRAME_TIME),
             AnimationType::Spinning => (AnimationType::ShowWinnings, self.show_winnings_duration),
-            AnimationType::ShowWinnings => (AnimationType::Stopped, STOPPED_FRAME_TIME),
-            AnimationType::Stopped => (AnimationType::Stopped, STOPPED_FRAME_TIME),
+            AnimationType::ShowWinnings | AnimationType::Stopped => {
+                (AnimationType::Stopped, STOPPED_FRAME_TIME)
+            }
         }
     }
 }

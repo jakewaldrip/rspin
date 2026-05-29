@@ -26,20 +26,15 @@ impl Display for Symbols {
             Symbols::Jackpot => "!",
             Symbols::Wild => "X",
         };
-        write!(f, "{}", symbol)
+        write!(f, "{symbol}")
     }
 }
 
 impl Symbols {
     pub fn get_value(&self) -> i32 {
         match self {
-            Symbols::Circle => 1,
-            Symbols::Hashtag => 1,
-            Symbols::Dollar => 1,
-            Symbols::AtSign => 1,
-            Symbols::Seven => 2,
-            Symbols::Astrisk => 2,
-            Symbols::AndSign => 2,
+            Symbols::Circle | Symbols::Hashtag | Symbols::Dollar | Symbols::AtSign => 1,
+            Symbols::Seven | Symbols::Astrisk | Symbols::AndSign => 2,
             Symbols::Jackpot => 7,
             Symbols::Wild => 0,
         }

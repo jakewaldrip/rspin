@@ -63,12 +63,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let lines_per_machine = 8; // Header + top border + 3 rows + bottom border + info line + spacer
-            let total_lines = (count * lines_per_machine) + 3; // +1 top + 1 total winnings + 1 press any key
+            let lines_per_machine: u16 = 8; // Header + top border + 3 rows + bottom border + info line + spacer
+            #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+            let total_lines = (count as u16 * lines_per_machine) + 3; // +1 top + 1 total winnings + 1 press any key
 
             ui.start(total_lines)?;
 
-            ui.run_spin_animation(machines, total_lines)?;
+            ui.run_spin_animation(&machines, total_lines)?;
             ui.wait_for_keypress()?;
 
             ui.finish(total_lines)?;

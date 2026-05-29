@@ -18,16 +18,17 @@ pub enum Paylines {
 impl Paylines {
     pub fn get_payout(&self, bet: i32) -> i32 {
         match self {
-            Paylines::HorSM(symbol, _) => symbol.get_value() * bet,
-            Paylines::AboveSM(symbol, _) => symbol.get_value() * bet,
-            Paylines::BelowSM(symbol, _) => symbol.get_value() * bet,
-            Paylines::ZigSM(symbol, _) => symbol.get_value() * 2 * bet,
-            Paylines::ZagSM(symbol, _) => symbol.get_value() * 2 * bet,
+            Paylines::HorSM(symbol, _)
+            | Paylines::AboveSM(symbol, _)
+            | Paylines::BelowSM(symbol, _) => symbol.get_value() * bet,
+            Paylines::ZigSM(symbol, _) | Paylines::ZagSM(symbol, _) => {
+                symbol.get_value() * 2 * bet
+            }
             Paylines::HorXL(symbol, _) => symbol.get_value() * 3 * bet,
-            Paylines::Zig(symbol, _) => symbol.get_value() * 4 * bet,
-            Paylines::Zag(symbol, _) => symbol.get_value() * 4 * bet,
-            Paylines::Above(symbol, _) => symbol.get_value() * 8 * bet,
-            Paylines::Below(symbol, _) => symbol.get_value() * 8 * bet,
+            Paylines::Zig(symbol, _) | Paylines::Zag(symbol, _) => symbol.get_value() * 4 * bet,
+            Paylines::Above(symbol, _) | Paylines::Below(symbol, _) => {
+                symbol.get_value() * 8 * bet
+            }
             Paylines::Eye(symbol, _) => symbol.get_value() * 10 * bet,
         }
     }
@@ -50,33 +51,33 @@ impl Paylines {
 
     pub fn symbol(&self) -> &Symbols {
         match self {
-            Paylines::HorSM(s, _) => s,
-            Paylines::AboveSM(s, _) => s,
-            Paylines::BelowSM(s, _) => s,
-            Paylines::ZigSM(s, _) => s,
-            Paylines::ZagSM(s, _) => s,
-            Paylines::HorXL(s, _) => s,
-            Paylines::Zig(s, _) => s,
-            Paylines::Zag(s, _) => s,
-            Paylines::Above(s, _) => s,
-            Paylines::Below(s, _) => s,
-            Paylines::Eye(s, _) => s,
+            Paylines::HorSM(s, _)
+            | Paylines::AboveSM(s, _)
+            | Paylines::BelowSM(s, _)
+            | Paylines::ZigSM(s, _)
+            | Paylines::ZagSM(s, _)
+            | Paylines::HorXL(s, _)
+            | Paylines::Zig(s, _)
+            | Paylines::Zag(s, _)
+            | Paylines::Above(s, _)
+            | Paylines::Below(s, _)
+            | Paylines::Eye(s, _) => s,
         }
     }
 
     pub fn positions(&self) -> &[(usize, usize)] {
         match self {
-            Paylines::HorSM(_, p) => p,
-            Paylines::AboveSM(_, p) => p,
-            Paylines::BelowSM(_, p) => p,
-            Paylines::ZigSM(_, p) => p,
-            Paylines::ZagSM(_, p) => p,
-            Paylines::HorXL(_, p) => p,
-            Paylines::Zig(_, p) => p,
-            Paylines::Zag(_, p) => p,
-            Paylines::Above(_, p) => p,
-            Paylines::Below(_, p) => p,
-            Paylines::Eye(_, p) => p,
+            Paylines::HorSM(_, p)
+            | Paylines::AboveSM(_, p)
+            | Paylines::BelowSM(_, p)
+            | Paylines::ZigSM(_, p)
+            | Paylines::ZagSM(_, p)
+            | Paylines::HorXL(_, p)
+            | Paylines::Zig(_, p)
+            | Paylines::Zag(_, p)
+            | Paylines::Above(_, p)
+            | Paylines::Below(_, p)
+            | Paylines::Eye(_, p) => p,
         }
     }
 }

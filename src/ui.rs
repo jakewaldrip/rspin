@@ -37,7 +37,7 @@ impl TerminalUI {
         }
     }
 
-    pub fn start(&mut self, total_lines: i32) -> io::Result<()> {
+    pub fn start(&mut self, total_lines: u16) -> io::Result<()> {
         enable_raw_mode()?;
         execute!(self.stdout, cursor::Hide)?;
 
@@ -50,6 +50,7 @@ impl TerminalUI {
         Ok(())
     }
 
+    #[allow(clippy::unused_self)]
     pub fn wait_for_keypress(&mut self) -> io::Result<()> {
         loop {
             if let Event::Key(_) = event::read()? {
@@ -60,7 +61,7 @@ impl TerminalUI {
         Ok(())
     }
 
-    pub fn finish(&mut self, total_lines: i32) -> io::Result<()> {
+    pub fn finish(&mut self, total_lines: u16) -> io::Result<()> {
         execute!(self.stdout, cursor::Show)?;
         disable_raw_mode()?;
 
@@ -68,7 +69,7 @@ impl TerminalUI {
         // Move back up one last time and wipe the stage clean.
         execute!(
             self.stdout,
-            cursor::MoveUp((total_lines + 1) as u16),
+            cursor::MoveUp(total_lines + 1),
             Clear(ClearType::FromCursorDown)
         )?;
 
@@ -77,8 +78,8 @@ impl TerminalUI {
 
     pub fn run_spin_animation(
         &mut self,
-        machines: Vec<Machine>,
-        total_lines: i32,
+        machines: &[Machine],
+        total_lines: u16,
     ) -> io::Result<()> {
         let max_paylines = machines.iter().map(|m| m.paylines.len()).max().unwrap_or(0);
         let total_machines = machines.len();
@@ -97,7 +98,7 @@ impl TerminalUI {
         let total_frames = total_animation_frames(total_machines, max_paylines);
         for frame in 0..total_frames {
             // Move to the top of the stage
-            execute!(self.stdout, cursor::MoveUp(total_lines as u16))?;
+            execute!(self.stdout, cursor::MoveUp(total_lines))?;
             writeln!(self.stdout)?;
 
             for (machine, animation_state) in &mut machine_animations {
@@ -153,6 +154,7 @@ impl TerminalUI {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     fn render_machine_inline(
         &mut self,
         machine: &mut Machine,
@@ -226,12 +228,9 @@ impl TerminalUI {
 
                 let lever_suffix = |row_idx: usize| -> &'static str {
                     match (lever_frame, row_idx) {
-                        (0, 0) | (4, 0) => " O", // handle at top
-                        (1, 0) | (3, 0) => " |", // shaft at top, handle mid
-                        (1, 1) | (3, 1) => " O", // handle at middle
-                        (2, 0) | (2, 1) => " |", // shaft trailing
-                        (2, 2) => " O",          // handle at bottom (fully pulled)
-                        _ => "  ",               // nothing
+                        (0 | 4, 0) | (1 | 3, 1) | (2, 2) => " O",
+                        (1 | 3, 0) | (2, 0 | 1) => " |",
+                        _ => "  ",
                     }
                 };
 
@@ -324,7 +323,7 @@ impl TerminalUI {
                     let current_payline = &machine.paylines[current_idx];
 
                     let winning_positions: HashSet<(usize, usize)> =
-                        current_payline.positions().iter().cloned().collect();
+                        current_payline.positions().iter().copied().collect();
 
                     for (row_idx, row) in visible_symbols.iter().enumerate() {
                         execute!(
@@ -339,7 +338,7 @@ impl TerminalUI {
                             .iter()
                             .enumerate()
                             .map(|(col_idx, sym)| {
-                                let text = format!("{}", sym);
+                                let text = format!("{sym}");
                                 if winning_positions.contains(&(row_idx, col_idx)) {
                                     style_winning_symbol(current_payline, text).to_string()
                                 } else {
@@ -433,7 +432,7 @@ impl TerminalUI {
             cursor::MoveToColumn(0),
             Clear(ClearType::UntilNewLine)
         )?;
-        writeln!(self.stdout, "{}", info_line)?;
+        writeln!(self.stdout, "{info_line}")?;
 
         // Spacer
         execute!(
@@ -462,5 +461,5 @@ fn style_winning_symbol(payline: &Paylines, text: String) -> String {
         Paylines::Below(..) => text.dark_blue().bold(),
         Paylines::Eye(..) => text.white().bold(),
     };
-    format!("{}", styled)
+    format!("{styled}")
 }

@@ -57,7 +57,7 @@ impl Machine {
         ];
 
         let visible_symbols = self.get_visible_symbols_for_payout();
-        let slices: Vec<&[Symbols]> = visible_symbols.iter().map(|v| v.as_slice()).collect();
+        let slices: Vec<&[Symbols]> = visible_symbols.iter().map(Vec::as_slice).collect();
         for payline_checker in &PAYLINES_TO_CHECK {
             if let Some(payline) = payline_checker(&slices) {
                 self.paylines.push(payline);
