@@ -2,10 +2,7 @@
 
 A terminal-based slot machine simulator with animated reels. Built in Rust.
 
-<!-- screenshot -->
-<p align="center">
-  <img src="" alt="rspin gameplay screenshot" width="600">
-</p>
+<img width="367" height="352" alt="Screenshot 2026-05-29 at 3 22 16 PM" src="https://github.com/user-attachments/assets/f6a25e82-c499-448a-bc11-3270bdbee68b" />
 
 ## Installation
 
