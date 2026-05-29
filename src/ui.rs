@@ -76,11 +76,7 @@ impl TerminalUI {
         Ok(())
     }
 
-    pub fn run_spin_animation(
-        &mut self,
-        machines: &[Machine],
-        total_lines: u16,
-    ) -> io::Result<()> {
+    pub fn run_spin_animation(&mut self, machines: &[Machine], total_lines: u16) -> io::Result<()> {
         let max_paylines = machines.iter().map(|m| m.paylines.len()).max().unwrap_or(0);
         let total_machines = machines.len();
 

@@ -21,14 +21,10 @@ impl Paylines {
             Paylines::HorSM(symbol, _)
             | Paylines::AboveSM(symbol, _)
             | Paylines::BelowSM(symbol, _) => symbol.get_value() * bet,
-            Paylines::ZigSM(symbol, _) | Paylines::ZagSM(symbol, _) => {
-                symbol.get_value() * 2 * bet
-            }
+            Paylines::ZigSM(symbol, _) | Paylines::ZagSM(symbol, _) => symbol.get_value() * 2 * bet,
             Paylines::HorXL(symbol, _) => symbol.get_value() * 3 * bet,
             Paylines::Zig(symbol, _) | Paylines::Zag(symbol, _) => symbol.get_value() * 4 * bet,
-            Paylines::Above(symbol, _) | Paylines::Below(symbol, _) => {
-                symbol.get_value() * 8 * bet
-            }
+            Paylines::Above(symbol, _) | Paylines::Below(symbol, _) => symbol.get_value() * 8 * bet,
             Paylines::Eye(symbol, _) => symbol.get_value() * 10 * bet,
         }
     }
