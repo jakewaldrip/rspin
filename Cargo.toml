@@ -2,6 +2,13 @@
 name = "rspin"
 version = "0.1.0"
 edition = "2024"
+description = "A terminal-based slot machine simulator with animated reels"
+license = "MIT"
+authors = ["Jake Waldrip"]
+repository = "https://github.com/jakewaldrip/rspin"
+readme = "README.md"
+keywords = ["cli", "terminal", "slot-machine", "game", "tui"]
+categories = ["command-line-utilities", "games"]
 
 [dependencies]
 clap = { version = "4.5.60", features = ["derive"] }
